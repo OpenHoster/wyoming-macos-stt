@@ -1,4 +1,4 @@
-"""Tests for wyoming-faster-whisper"""
+"""Tests for wyoming-macos-stt"""
 
 import asyncio
 import re
@@ -14,29 +14,20 @@ from wyoming.event import async_read_event, async_write_event
 from wyoming.info import Describe, Info
 
 _DIR = Path(__file__).parent
-_PROGRAM_DIR = _DIR.parent
-_LOCAL_DIR = _PROGRAM_DIR / "local"
 _SAMPLES_PER_CHUNK = 1024
 
-# Need to give time for the model to download
-_START_TIMEOUT = 60
+_START_TIMEOUT = 10
 _TRANSCRIBE_TIMEOUT = 60
 
 
 @pytest.mark.asyncio
-async def test_faster_whisper() -> None:
+async def test_macos_stt() -> None:
     proc = await asyncio.create_subprocess_exec(
         sys.executable,
         "-m",
-        "wyoming_faster_whisper",
+        "wyoming_macos_stt",
         "--uri",
         "stdio://",
-        "--model",
-        "tiny-int8",
-        "--data-dir",
-        str(_LOCAL_DIR),
-        "--language",
-        "en",
         stdin=PIPE,
         stdout=PIPE,
     )
@@ -58,16 +49,12 @@ async def test_faster_whisper() -> None:
         assert len(info.asr) == 1, "Expected one asr service"
         asr = info.asr[0]
         assert len(asr.models) > 0, "Expected at least one model"
-        assert any(
-            m.name == "tiny-int8" for m in asr.models
-        ), "Expected tiny-int8 model"
         break
 
-    # We want to use the whisper model
-    await async_write_event(Transcribe(name="tiny-int8").event(), proc.stdin)
+    await async_write_event(Transcribe(language="en_US").event(), proc.stdin)
 
     # Test known WAV
-    with wave.open(str(_DIR / "turn_on_the_living_room_lamp.wav"), "rb") as example_wav:
+    with wave.open(str(_DIR / "text_audio.wav"), "rb") as example_wav:
         await async_write_event(
             AudioStart(
                 rate=example_wav.getframerate(),

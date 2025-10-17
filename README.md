@@ -1,39 +1,66 @@
-# Wyoming Faster Whisper
+# Wyoming macOS STT
 
-[Wyoming protocol](https://github.com/rhasspy/wyoming) server for the [faster-whisper](https://github.com/guillaumekln/faster-whisper/) speech to text system.
+[Wyoming protocol](https://github.com/rhasspy/wyoming) server for Speech-to-Text on macOS, using [yap](https://github.com/finnvoor/yap) CLI tool to transcribe speech natively on Apple silicon for voice pipelines in Home Assistant.
 
-## Home Assistant Add-on
+## Features
+- Single install command to run in the background and automatically on login
+- Supports multiple [languages](wyoming_macos_stt/info.py)
 
-[![Show add-on](https://my.home-assistant.io/badges/supervisor_addon.svg)](https://my.home-assistant.io/redirect/supervisor_addon/?addon=core_whisper)
+For Text-to-Speech on macOS, check out [wyoming-macos-tts](https://github.com/openhoster/wyoming-macos-tts)
 
-[Source](https://github.com/home-assistant/addons/tree/master/whisper)
+## Getting Started
 
-## Local Install
+### Requirements
+- macOS 26
+- [uv](https://github.com/astral-sh/uv)
+- [yap](https://github.com/finnvoor/yap)
 
-Clone the repository and set up Python virtual environment:
+> These can be installed using [Homebrew](https://brew.sh) - `brew install uv finnvoor/tools/yap`
 
-``` sh
-git clone https://github.com/rhasspy/wyoming-faster-whisper.git
-cd wyoming-faster-whisper
-script/setup
-```
+### Installing
 
-Run a server anyone can connect to:
+1. Clone this repository and navigate into it:
+    ```bash
+    git clone https://github.com/openhoster/wyoming-macos-stt
+    cd wyoming-macos-stt
+    ```
+2. Run the installer and follow the prompts:
+    ```bash
+    uv run script/install.py
+    ```
+    This will create a launcher file and optionally set it to run in the background and on login.
+    
+    By default the server will be available externally for devices on the local network. You can change this and other arguments by editing the launcher file `WyomingSTT`. 
+    
+    > To see all the available arguments, run: `uv run -m wyoming_macos_stt --help`
+3. Adding to Home Assistant:  
+   Add a new Wyoming service with the Mac’s host/IP and port `10300`.
 
-```sh
-script/run --model tiny-int8 --language en --uri 'tcp://0.0.0.0:10300' --data-dir /data --download-dir /data
-```
+### Uninstalling
 
-The `--model` can also be a HuggingFace model like `Systran/faster-distil-whisper-small.en`
+Re-run the installer and, when prompted: `Run in the background and on login?` enter `n`
 
-## Docker Image
+To completely remove all resources, delete the cloned repository folder.
 
-``` sh
-docker run -it -p 10300:10300 -v /path/to/local/data:/data rhasspy/wyoming-whisper \
-    --model tiny-int8 --language en
-```
+### Development
 
-**NOTE**: Models are downloaded temporarily to the `HF_HUB_CACHE` directory, which defaults to `~/.cache/huggingface/hub`.
-You may need to adjust this environment variable when using a read-only root filesystem (e.g., `HF_HUB_CACHE=/tmp`).
+- Install dev dependencies: 
+    ```bash
+    uv sync --extra dev
+    ```
+- Running in a terminal session:
+    ```bash 
+    uv run -m wyoming_macos_stt --help
+    ```
+- Running tests:
+    ```bash 
+    uv run -m pytest tests
+    ```
 
-[Source](https://github.com/rhasspy/wyoming-addons/tree/master/whisper)
+---
+
+If you find this usefull and want to support future projects:
+
+<a href="https://www.buymeacoffee.com/openhoster" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50"/>
+</a>

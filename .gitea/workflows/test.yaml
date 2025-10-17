@@ -1,0 +1,31 @@
+on:
+  push:
+
+jobs:
+  tests:
+    runs-on: [ nas ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install requirements
+        run: uv sync --extra dev
+
+      - name: Mock 'yap' command
+        run: |
+          mkdir -p ~/.local/bin
+          echo -e '#!/bin/sh\necho "turn on the living room lamp"' > ~/.local/bin/yap
+          chmod +x ~/.local/bin/yap
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run tests
+        run: uv run -m pytest tests
